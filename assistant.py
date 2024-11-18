@@ -124,7 +124,3 @@ async def get_date(update: Update, context: CallbackContext) -> int:
     )
 
     return CHOOSING_CATEGORY
-
-async def check_state(update: Update, context: CallbackContext) -> None:
-    current_state = context.user_data.get('state', 'не определено')
-    await update.message.reply_text(f"Текущее состояние: {current_state}")

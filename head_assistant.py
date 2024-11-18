@@ -180,19 +180,15 @@ async def confirm_assistant(update: Update, context: CallbackContext) -> None:
                 "Что вы хотите сделать дальше?",
                 reply_markup=InlineKeyboardMarkup(reply_keyboard)
             )
+            categories = load_categories()  # Загружаем категории
 
             try:
-
                 await context.bot.send_message(
                     chat_id=user_id,
-                    text="Ваш запрос на доступ был одобрен! Теперь у вас есть доступ к системе.",
-                    reply_markup=InlineKeyboardMarkup([
-                        [InlineKeyboardButton('Транспорт', callback_data='Транспорт')],
-                        [InlineKeyboardButton('Питание', callback_data='Питание')],
-                        [InlineKeyboardButton('Офисные расходы', callback_data='Офисные расходы')],
-                        [InlineKeyboardButton('Другое', callback_data='Другое')]
-                    ])
+                    text=r"Ваш запрос на доступ был одобрен! Теперь у вас есть доступ к системе. Введите команду /categories",
+                    reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(category, callback_data=category)] for category in categories]
                 )
+            )
             except Exception as e:
                 print(f"Ошибка отправки сообщения новому ассистенту: {e}")
         else:
@@ -487,30 +483,35 @@ async def get_report_period(update: Update, context: CallbackContext) -> int:
 
         # Получаем данные из Google Sheets (предполагается, что данные уже загружены в DataFrame)
     try:
+        expected_headers = ['Ассистент', 'Категория', 'Объект или услуга', 'Дата', 'Сумма', 'Место покупки',
+                            'Номер чека']
+
         # Получаем данные из Google Sheets (предполагается, что данные уже загружены в DataFrame)
         sheet = client.open("Отчеты в отделе ассистентов").sheet1
-        records = sheet.get_all_records()
+        records = sheet.get_all_records(expected_headers=expected_headers)
+
         df = pd.DataFrame(records)
+
     except Exception as e:
-        await update.message.reply_text(
-            f"Не удалось подключиться к Google Sheets. Пожалуйста, попробуйте позже. Ошибка: {str(e)}"
-        )
-        await update.message.reply_text("Что вы хотите сделать дальше?",
-                                        reply_markup=InlineKeyboardMarkup([
-                                            [InlineKeyboardButton("Просмотр запросов", callback_data='view_requests')],
-                                            [InlineKeyboardButton("Просмотреть список ассистентов",
-                                                                  callback_data='view_assistants')],
-                                            [InlineKeyboardButton("Удалить ассистента",
-                                                                  callback_data='delete_assistant')],
-                                            [InlineKeyboardButton("Отчет", callback_data='report')],
-                                            [InlineKeyboardButton("Отчет в чат", callback_data='chat_report')],
-                                            [InlineKeyboardButton("Ссылка на группу с чеками",
-                                                                  callback_data='group_link')],
-                                            [InlineKeyboardButton("Ссылка на таблицу", callback_data='table_link')],
-                                            [InlineKeyboardButton("Добавить категорию", callback_data='add_category'),
-                                             InlineKeyboardButton("Удалить категорию", callback_data='remove_category')]
-                                        ]))
-        return MANAGER_OPTIONS
+            await update.message.reply_text(
+                f"Не удалось подключиться к Google Sheets. Пожалуйста, попробуйте позже. Ошибка: {str(e)}"
+            )
+            await update.message.reply_text("Что вы хотите сделать дальше?",
+                                            reply_markup=InlineKeyboardMarkup([
+                                                [InlineKeyboardButton("Просмотр запросов", callback_data='view_requests')],
+                                                [InlineKeyboardButton("Просмотреть список ассистентов",
+                                                                      callback_data='view_assistants')],
+                                                [InlineKeyboardButton("Удалить ассистента",
+                                                                      callback_data='delete_assistant')],
+                                                [InlineKeyboardButton("Отчет", callback_data='report')],
+                                                [InlineKeyboardButton("Отчет в чат", callback_data='chat_report')],
+                                                [InlineKeyboardButton("Ссылка на группу с чеками",
+                                                                      callback_data='group_link')],
+                                                [InlineKeyboardButton("Ссылка на таблицу", callback_data='table_link')],
+                                                [InlineKeyboardButton("Добавить категорию", callback_data='add_category'),
+                                                 InlineKeyboardButton("Удалить категорию", callback_data='remove_category')]
+                                            ]))
+            return MANAGER_OPTIONS
 
     # Печать списка столбцов для отладки
     print(f"Доступные столбцы: {df.columns.tolist()}")

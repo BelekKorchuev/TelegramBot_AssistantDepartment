@@ -55,3 +55,5 @@ tzdata==2023.3
 uritemplate==4.1.1
 urllib3==2.2.2
 wheel==0.43.0
+
+aiofiles~=24.1.0
