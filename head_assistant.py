@@ -644,9 +644,11 @@ async def generate_report_to_chat(update: Update, context: CallbackContext) -> i
 
     # Получаем данные из Google Sheets (предполагается, что данные уже загружены в DataFrame)
     try:
+        expected_headers = ['Ассистент', 'Категория', 'Объект или услуга', 'Дата', 'Сумма', 'Место покупки',
+                            'Номер чека']
         # Получаем данные из Google Sheets (предполагается, что данные уже загружены в DataFrame)
         sheet = client.open("Отчеты в отделе ассистентов").sheet1
-        records = sheet.get_all_records()
+        records = sheet.get_all_records(expected_headers=expected_headers)
         df = pd.DataFrame(records)
     except Exception as e:
         await update.message.reply_text(
